@@ -14,15 +14,13 @@ How can the farmer get all three possessions across the river safely?
 
 CREATURES == {"farmer", "fox", "chicken", "grain"}
 
-VARIABLES left, right
-
-done == right = CREATURES
-
 
 (***************************************************************************
 --algorithm Boat {
 
 variables left = CREATURES, right = {}
+
+done == right = CREATURES;
 
 process ( Left = 0 )
     { p1: while (~done)
@@ -40,7 +38,7 @@ process ( Right = 1 )
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
-\* Label p1 of process Left at line 28 col 11 changed to p1_
+\* Label p1 of process Left at line 31 col 11 changed to p1_
 VARIABLES left, right, pc
 
 vars == << left, right, pc >>
@@ -49,7 +47,9 @@ ProcSet == {0} \cup {1}
 
 Init == (* Global variables *)
         /\ left = CREATURES
-        /\ right = {}
+        /\ right =                                     {}
+                   
+                   done == right = CREATURES
         /\ pc = [self \in ProcSet |-> CASE self = 0 -> "p1_"
                                         [] self = 1 -> "p1"]
 
@@ -84,5 +84,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Mon Jun 02 20:54:32 EDT 2014 by lorinhochstein
+\* Last modified Mon Jun 02 20:55:40 EDT 2014 by lorinhochstein
 \* Created Mon Jun 02 20:41:25 EDT 2014 by lorinhochstein
