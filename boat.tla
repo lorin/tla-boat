@@ -24,13 +24,21 @@ done == right = CREATURES;
 
 process ( LeftToRight = 0 )
     { p1: while (~done)
-        { await ("farmer" \in left) 
+        { await ("farmer" \in left);
+          with(boat \in validBoatsLeftToRight)
+            { left := left \ boat;
+              right := right \cup boat
+            }
         }
     }
 
 process ( RightToLeft = 1 )
     { p1: while (~done)
-        { await ("farmer" \in right) 
+        { await ("farmer" \in right);
+          with(boat \in validBoatsRightToLeft)
+            { right := right \ boat;
+              left := left \cup boat
+            } 
         }
     }
 
@@ -38,7 +46,7 @@ process ( RightToLeft = 1 )
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
-\* Label p1 of process Left at line 31 col 11 changed to p1_
+\* Label p1 of process LeftToRight at line 26 col 11 changed to p1_
 VARIABLES left, right, pc
 
 vars == << left, right, pc >>
@@ -56,22 +64,28 @@ Init == (* Global variables *)
 p1_ == /\ pc[0] = "p1_"
        /\ IF ~done
              THEN /\ ("farmer" \in left)
+                  /\ \E boat \in validBoatsLeftToRight:
+                       /\ left' = left \ boat
+                       /\ right' = (right \cup boat)
                   /\ pc' = [pc EXCEPT ![0] = "p1_"]
              ELSE /\ pc' = [pc EXCEPT ![0] = "Done"]
-       /\ UNCHANGED << left, right >>
+                  /\ UNCHANGED << left, right >>
 
-Left == p1_
+LeftToRight == p1_
 
 p1 == /\ pc[1] = "p1"
       /\ IF ~done
             THEN /\ ("farmer" \in right)
+                 /\ \E boat \in validBoatsRightToLeft:
+                      /\ right' = right \ boat
+                      /\ left' = (left \cup boat)
                  /\ pc' = [pc EXCEPT ![1] = "p1"]
             ELSE /\ pc' = [pc EXCEPT ![1] = "Done"]
-      /\ UNCHANGED << left, right >>
+                 /\ UNCHANGED << left, right >>
 
-Right == p1
+RightToLeft == p1
 
-Next == Left \/ Right
+Next == LeftToRight \/ RightToLeft
            \/ (* Disjunct to prevent deadlock on termination *)
               ((\A self \in ProcSet: pc[self] = "Done") /\ UNCHANGED vars)
 
@@ -84,5 +98,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Mon Jun 02 20:57:10 EDT 2014 by lorinhochstein
+\* Last modified Mon Jun 02 21:03:19 EDT 2014 by lorinhochstein
 \* Created Mon Jun 02 20:41:25 EDT 2014 by lorinhochstein
