@@ -22,13 +22,13 @@ variables left = CREATURES, right = {}
 
 done == right = CREATURES;
 
-process ( Left = 0 )
+process ( LeftToRight = 0 )
     { p1: while (~done)
         { await ("farmer" \in left) 
         }
     }
 
-process ( Right = 1 )
+process ( RightToLeft = 1 )
     { p1: while (~done)
         { await ("farmer" \in right) 
         }
@@ -84,5 +84,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Mon Jun 02 20:55:40 EDT 2014 by lorinhochstein
+\* Last modified Mon Jun 02 20:57:10 EDT 2014 by lorinhochstein
 \* Created Mon Jun 02 20:41:25 EDT 2014 by lorinhochstein
