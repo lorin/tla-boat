@@ -24,15 +24,21 @@ somebodyGetsEaten(l, r) == \/ alone({"fox", "chicken"}, l)
                            \/ alone({"chicken", "grain"}, r)
 
 validPassengersFromLeftToRight(l, r) == { x \in l : ~somebodyGetsEaten(l \ {"farmer", x}, r \cup {"farmer", x})}
+validPassengersFromRightToLeft(l, r) == { x \in r : ~somebodyGetsEaten(l \cup {"farmer", x}, r \ {"farmer", x})}
 
 farmerCanTravelAloneFromLeftToRight(l, r) == ~ somebodyGetsEaten(l \ {"farmer"}, r \cup {"farmer"}) 
 farmerCanTravelAloneFromRightToLeft(l, r) == ~ somebodyGetsEaten(r \ {"farmer"}, l \cup {"farmer"})
 
 
 validBoatsFromLeftToRight(l, r) ==  
-    IF farmerCanTravelAloneFromLeftToRight(l, r) THEN {x \in validPassengersFromLeftToRight(l, r) : {x, "farmer"} \cup {"farmer"} }
+    IF farmerCanTravelAloneFromLeftToRight(l, r) THEN {x \in validPassengersFromLeftToRight(l, r) : {x, "farmer"} } \cup {"farmer"} 
                                                  ELSE {x \in validPassengersFromLeftToRight(l, r) : {x, "farmer"} }
           
+
+validBoatsFromRightToLeft(l, r) ==  
+    IF farmerCanTravelAloneFromRightToLeft(l, r) THEN {x \in validPassengersFromRightToLeft(l, r) : {x, "farmer"} } \cup {"farmer"} 
+                                                 ELSE {x \in validPassengersFromRightToLeft(l, r) : {x, "farmer"} }
+
 
 
 
@@ -44,7 +50,7 @@ variables left = CREATURES; right = {};
 process ( LeftToRight = 0 )
     { p1: while (~done(left, right))
         { await ("farmer" \in left);
-          with(boat \in validBoatsLeftToRight)
+          with(boat \in validBoatsFromLeftToRight(left, right))
             { left := left \ boat;
               right := right \cup boat
             }
@@ -54,19 +60,17 @@ process ( LeftToRight = 0 )
 process ( RightToLeft = 1 )
     { p1: while (~done(left, right))
         { await ("farmer" \in right);
-          with(boat \in validBoatsRightToLeft)
+          with(boat \in validBoatsFromRightToLeft(left, right))
             { right := right \ boat;
               left := left \cup boat
             } 
         }
     }
 
-
-
 }
  ***************************************************************************)
 \* BEGIN TRANSLATION
-\* Label p1 of process LeftToRight at line 46 col 11 changed to p1_
+\* Label p1 of process LeftToRight at line 51 col 11 changed to p1_
 VARIABLES left, right, pc
 
 vars == << left, right, pc >>
@@ -82,7 +86,7 @@ Init == (* Global variables *)
 p1_ == /\ pc[0] = "p1_"
        /\ IF ~done(left, right)
              THEN /\ ("farmer" \in left)
-                  /\ \E boat \in validBoatsLeftToRight:
+                  /\ \E boat \in validBoatsFromLeftToRight(left, right):
                        /\ left' = left \ boat
                        /\ right' = (right \cup boat)
                   /\ pc' = [pc EXCEPT ![0] = "p1_"]
@@ -94,7 +98,7 @@ LeftToRight == p1_
 p1 == /\ pc[1] = "p1"
       /\ IF ~done(left, right)
             THEN /\ ("farmer" \in right)
-                 /\ \E boat \in validBoatsRightToLeft:
+                 /\ \E boat \in validBoatsFromRightToLeft(left, right):
                       /\ right' = right \ boat
                       /\ left' = (left \cup boat)
                  /\ pc' = [pc EXCEPT ![1] = "p1"]
@@ -116,5 +120,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Mon Jun 02 21:34:35 EDT 2014 by lorinhochstein
+\* Last modified Mon Jun 02 21:40:10 EDT 2014 by lorinhochstein
 \* Created Mon Jun 02 20:41:25 EDT 2014 by lorinhochstein
