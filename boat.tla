@@ -41,7 +41,8 @@ variables left = CREATURES; right = {};
 process ( LeftToRight = 0 )
     { p1: while (~done(left, right))
         { await (Farmer \in left);
-          with(passenger \in validPassengersFromLeft(left, right))
+          with(passenger \in validPassengersFromLeft(left, right);
+          boat = {Farmer, passenger})
             {        
               if(farmerCanGoAloneFromLeft(left, right))
                 either
@@ -50,13 +51,13 @@ process ( LeftToRight = 0 )
                     }
                 or
                     {
-                      left := left \ {Farmer, passenger};
-                      right := right \cup {Farmer, passenger}
+                      left := left \ boat;
+                      right := right \cup boat
                     }
               else
                 {
-                  left := left \ {Farmer, passenger};
-                  right := right \cup {Farmer, passenger}  
+                  left := left \ boat;
+                  right := right \cup boat
                 }
             }
         }
@@ -65,7 +66,8 @@ process ( LeftToRight = 0 )
 process ( RightToLeft = 1 )
     { p2: while (~done(left, right))
         { await (Farmer \in right);
-          with(passenger \in validPassengersFromRight(left, right))
+          with(passenger \in validPassengersFromRight(left, right);
+               boat = {Farmer, passenger})
             {        
               if(farmerCanGoAloneFromRight(left, right))
                 either
@@ -74,13 +76,13 @@ process ( RightToLeft = 1 )
                     }
                 or
                     {
-                      right := right \ {Farmer, passenger};
-                      left := left \cup {Farmer, passenger}
+                      right := right \ boat;
+                      left := left \cup boat
                     }
               else
                 {
-                  right := right \ {Farmer, passenger};
-                  left := left \cup {Farmer, passenger}  
+                  right := right \ boat;
+                  left := left \cup boat
                 }
             }
         }
