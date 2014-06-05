@@ -12,6 +12,8 @@ How can the farmer get all three possessions across the river safely?
 
 -------------------------------- MODULE boat --------------------------------
 
+EXTENDS Integers, FiniteSets
+
 CONSTANTS Farmer, Fox, Chicken, Grain
 
 CREATURES == {Farmer, Fox, Chicken, Grain}
@@ -27,71 +29,40 @@ somebodyGetsEaten(l, r) == \/ alone({Fox, Chicken}, l)
 
 safe(l, r) == ~somebodyGetsEaten(l, r)
 
-validPassengersFromLeft(l, r)  == { x \in l : safe(l \ {Farmer, x}, r \cup {Farmer, x})}
-validPassengersFromRight(l, r) == { x \in r : safe(l \cup {Farmer, x}, r \ {Farmer, x})}
-
-farmerCanGoAloneFromLeft(l, r)  == safe(l \ {Farmer}, r \cup {Farmer}) 
-farmerCanGoAloneFromRight(l, r) == safe(r \ {Farmer}, l \cup {Farmer})
+safeBoats(from, to) == { boat \in SUBSET from : /\ Farmer \in boat
+                                                /\ Cardinality(boat) <= 2
+                                                /\ safe(from \ boat, to \cup boat) }
 
 (***************************************************************************
---algorithm Boat {
+--algorithm RiverCrossing {
 
 variables left = CREATURES; right = {};
 
 process ( LeftToRight = 0 )
-    { p1: while (~done(left, right))
-        { await (Farmer \in left);
-          with(passenger \in validPassengersFromLeft(left, right);
-          boat = {Farmer, passenger})
-            {        
-              if(farmerCanGoAloneFromLeft(left, right))
-                either
-                    { left := left \ {Farmer};
-                      right := right \cup {Farmer};
-                    }
-                or
-                    {
-                      left := left \ boat;
-                      right := right \cup boat
-                    }
-              else
-                {
-                  left := left \ boat;
-                  right := right \cup boat
-                }
-            }
-        }
+    { l: while (~done(left, right))
+         { await (Farmer \in left);
+           with(boat \in safeBoats(left, right))
+             {
+               left := left \ boat;
+               right := right \cup boat
+             }
+         }
     }
 
 process ( RightToLeft = 1 )
-    { p2: while (~done(left, right))
-        { await (Farmer \in right);
-          with(passenger \in validPassengersFromRight(left, right);
-               boat = {Farmer, passenger})
-            {        
-              if(farmerCanGoAloneFromRight(left, right))
-                either
-                    { right := right \ {Farmer};
-                      left := left \cup {Farmer};
-                    }
-                or
-                    {
-                      right := right \ boat;
-                      left := left \cup boat
-                    }
-              else
-                {
-                  right := right \ boat;
-                  left := left \cup boat
-                }
-            }
-        }
+    { r: while (~done(left, right))
+         { await (Farmer \in right);
+           with(boat \in safeBoats(right, left))
+             {
+               left := left \cup boat;
+               right := right \ boat
+             }
+         }
     }
-
 }
  ***************************************************************************)
 
 =============================================================================
 \* Modification History
-\* Last modified Mon Jun 02 22:48:00 EDT 2014 by lorinhochstein
+\* Last modified Wed Jun 04 21:40:04 EDT 2014 by lorinhochstein
 \* Created Mon Jun 02 20:41:25 EDT 2014 by lorinhochstein
